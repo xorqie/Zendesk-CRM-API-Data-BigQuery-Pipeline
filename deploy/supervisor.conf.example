@@ -1,0 +1,28 @@
+# Example Supervisor config for running this pipeline as a background process.
+#
+# Note on why this file exists: the original `supervisor.conf` found
+# alongside these scripts had every program pointed at the wrong command -
+# a `[program:dovetail]` block ran `avalanche.py`, `[program:avalanche]` ran
+# `playvox.py`, and `[program:playvox]` tried to `source` a Python file
+# from bash. None of the three programs actually ran the project whose name
+# it carried. That's the kind of mismatch that's easy to introduce when
+# config is edited ad hoc over time and easy to miss until something
+# silently isn't running. This file replaces it with one program, correctly
+# pointed at this project.
+#
+# In practice, a scheduled batch job like this is usually a better fit for
+# cron (see the README's "Running the Project" section) than a
+# long-running supervisor process, since it isn't meant to run
+# continuously - it runs, finishes, and exits. This file is included for
+# environments that standardize on Supervisor for all jobs regardless.
+
+[program:zendesk-bigquery-pipeline]
+command=/path/to/venv/bin/python /path/to/zendesk-bigquery-pipeline/main.py
+directory=/path/to/zendesk-bigquery-pipeline
+autostart=false
+autorestart=false
+startsecs=0
+user=your-service-user
+stderr_logfile=/var/log/zendesk-bigquery-pipeline.err.log
+stdout_logfile=/var/log/zendesk-bigquery-pipeline.out.log
+environment=GOOGLE_APPLICATION_CREDENTIALS="/path/to/service-account.json"
