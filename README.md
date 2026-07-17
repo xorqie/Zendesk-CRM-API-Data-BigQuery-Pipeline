@@ -31,6 +31,29 @@ Tableau dashboard instead of manual exports.
 
 ---
 
+## Engineering approach
+
+Support and SLA data only creates business value if the numbers behind a
+dashboard can be trusted — a pipeline that silently drops records,
+duplicates rows, or can't join its own tables together produces a
+dashboard that looks fine and is wrong. The design choices here are built
+around avoiding that:
+
+- **Consistency across a pipeline is a correctness property, not a style
+  preference** — a join key formatted two different ways in two tables
+  isn't cosmetic, it's a pipeline that can't answer basic cross-table
+  questions. Every ID/name field and join key is formatted the same way
+  everywhere.
+- **Scheduling is part of the pipeline, not out of scope** — a
+  misconfigured scheduler produces the same outcome as broken code: data
+  that silently isn't there.
+- **Explicit schemas over inferred ones** — every table defines its
+  BigQuery schema explicitly rather than relying on autodetection, so
+  column types stay stable across runs regardless of which fields happen
+  to be null in a given batch.
+
+---
+
 ## Features
 
 - **Four independent pipelines** — users, tickets, CSAT, ticket metrics
@@ -63,7 +86,6 @@ Tableau dashboard instead of manual exports.
   keeping the more correct of the two duplicated SLA calculations (the
   second copy explicitly handles values at the 24-hour boundary; the
   first left that case ambiguous).
-
 - **`ticket_id` was formatted inconsistently across tables** — an API URL
   (`.../api/v2/tickets/{id}.json`) in the tickets script, but an agent-UI
   deep link (`.../agent/tickets/{id}`) in the CSAT script — which meant
